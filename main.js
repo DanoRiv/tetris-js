@@ -102,7 +102,7 @@ function draw () {
         context.fillStyle = '#47b8ee'
         context.fillRect(x, y, 1, 1)
         context.strokeStyle = 'white'
-        context.lineWidth = 0.02 // Thin border
+        context.lineWidth = 0.02
         context.strokeRect(x, y, 1, 1)
       }
     })
@@ -112,8 +112,8 @@ function draw () {
       if (value) {
         context.fillStyle = '#c84a25'
         context.fillRect(x + piece.position.x, y + piece.position.y, 1, 1)
-        context.strokeStyle = 'white' // Adding a border for better visibility
-        context.lineWidth = 0.02 // Thin border
+        context.strokeStyle = 'white'
+        context.lineWidth = 0.02
         context.strokeRect(x + piece.position.x, y + piece.position.y, 1, 1)
       }
     })
@@ -219,4 +219,9 @@ function removeRows () {
   })
 }
 
-update()
+const startGame = document.querySelector('.gameStart')
+
+startGame.addEventListener('click', () => {
+  update()
+  startGame.remove()
+})
