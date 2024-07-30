@@ -1,8 +1,9 @@
 import './style.css'
 import { BLOCK_SIZE, BOARD_HEIGHT, BOARD_WIDTH } from './consts'
+import { drawNextPiece } from './nextPiece'
 
 // 1. inicializar el canvas
-const canvas = document.querySelector('canvas')
+const canvas = document.querySelector('.mainBoard')
 const context = canvas.getContext('2d')
 const $score = document.querySelector('span')
 
@@ -28,7 +29,11 @@ const PIECES = [
     [1, 1],
     [1, 1]
   ],
-  [[1, 1, 1, 1]],
+  [
+    [0, 0, 0, 0],
+    [1, 1, 1, 1],
+    [0, 0, 0, 0]
+  ],
   [
     [1, 0, 0],
     [1, 1, 1]
@@ -41,7 +46,12 @@ const PIECES = [
     [1, 1, 0],
     [0, 1, 1]
   ],
-  [[1], [1], [1], [1]],
+  [
+    [0, 1, 0],
+    [0, 1, 0],
+    [0, 1, 0],
+    [0, 1, 0]
+  ],
   [
     [0, 1, 1],
     [1, 1, 0]
@@ -57,6 +67,8 @@ const piece = {
   position: { x: 5, y: 5 },
   shape: PIECES[Math.floor(Math.random() * PIECES.length)]
 }
+
+let currentPiece = piece.shape
 
 // 2. Game Loop
 
@@ -92,32 +104,48 @@ function update (time = 0) {
   window.requestAnimationFrame(update)
 }
 
+function drawMatrix (matrix, offset, color) {
+  matrix.forEach((row, y) => {
+    row.forEach((value, x) => {
+      if (value) {
+        context.fillStyle = color
+        context.fillRect(x + offset.x, y + offset.y, 1, 1)
+        context.strokeStyle = 'white'
+        context.lineWidth = 0.02
+        context.strokeRect(x + offset.x, y + offset.y, 1, 1)
+      }
+    })
+  })
+}
+
 function draw () {
   context.fillStyle = '#000'
   context.fillRect(0, 0, canvas.width, canvas.height)
 
-  board.forEach((row, y) => {
-    row.forEach((value, x) => {
-      if (value === 1) {
-        context.fillStyle = '#47b8ee'
-        context.fillRect(x, y, 1, 1)
-        context.strokeStyle = 'white'
-        context.lineWidth = 0.02
-        context.strokeRect(x, y, 1, 1)
-      }
-    })
-  })
-  piece.shape.forEach((row, y) => {
-    row.forEach((value, x) => {
-      if (value) {
-        context.fillStyle = '#c84a25'
-        context.fillRect(x + piece.position.x, y + piece.position.y, 1, 1)
-        context.strokeStyle = 'white'
-        context.lineWidth = 0.02
-        context.strokeRect(x + piece.position.x, y + piece.position.y, 1, 1)
-      }
-    })
-  })
+  drawMatrix(board, { x: 0, y: 0 }, '#47b8ee')
+  drawMatrix(piece.shape, piece.position, '#c84a25')
+  // board.forEach((row, y) => {
+  //   row.forEach((value, x) => {
+  //     if (value === 1) {
+  //       context.fillStyle = '#47b8ee'
+  //       context.fillRect(x, y, 1, 1)
+  //       context.strokeStyle = 'white'
+  //       context.lineWidth = 0.02
+  //       context.strokeRect(x, y, 1, 1)
+  //     }
+  //   })
+  // })
+  // piece.shape.forEach((row, y) => {
+  //   row.forEach((value, x) => {
+  //     if (value) {
+  //       context.fillStyle = '#c84a25'
+  //       context.fillRect(x + piece.position.x, y + piece.position.y, 1, 1)
+  //       context.strokeStyle = 'white'
+  //       context.lineWidth = 0.02
+  //       context.strokeRect(x + piece.position.x, y + piece.position.y, 1, 1)
+  //     }
+  //   })
+  // })
 
   // 10. Puntaje
   $score.innerText = score
@@ -145,24 +173,28 @@ document.addEventListener('keydown', (event) => {
     }
   }
 
-  // 9. Rotaciones
   if (event.key === 'ArrowUp') {
-    const rotatedPiece = []
-    for (let i = 0; i < piece.shape[0].length; i++) {
-      const row = []
-      for (let j = piece.shape.length - 1; j >= 0; j--) {
-        row.push(piece.shape[j][i])
-      }
-      rotatedPiece.push(row)
-    }
-
-    const previousShape = piece.shape
-    piece.shape = rotatedPiece
-    if (checkCollision()) {
-      piece.shape = previousShape
-    }
+    rotation()
   }
 })
+
+// 9. Rotaciones
+function rotation () {
+  const rotatedPiece = []
+  for (let i = 0; i < piece.shape[0].length; i++) {
+    const row = []
+    for (let j = piece.shape.length - 1; j >= 0; j--) {
+      row.push(piece.shape[j][i])
+    }
+    rotatedPiece.push(row)
+  }
+
+  const previousShape = piece.shape
+  piece.shape = rotatedPiece
+  if (checkCollision()) {
+    piece.shape = previousShape
+  }
+}
 
 // 5. Verificar colisiones
 
@@ -190,7 +222,8 @@ function solidifyPiece () {
   piece.position.y = 0
 
   // random piece
-  piece.shape = PIECES[Math.floor(Math.random() * PIECES.length)]
+  piece.shape = currentPiece
+  nextPiece()
 
   // 11. Game Over
   if (checkCollision()) {
@@ -198,6 +231,13 @@ function solidifyPiece () {
     board.forEach((row) => row.fill(0))
     score = 0
   }
+}
+
+// Siguiente pieza
+function nextPiece () {
+  const nextPiece = PIECES[Math.floor(Math.random() * PIECES.length)]
+  drawNextPiece(nextPiece)
+  currentPiece = nextPiece
 }
 
 // 7. Remover filas completas
@@ -222,6 +262,7 @@ function removeRows () {
 const startGame = document.querySelector('.gameStart')
 
 startGame.addEventListener('click', () => {
+  nextPiece()
   update()
   startGame.remove()
 })
