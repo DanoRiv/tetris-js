@@ -1,4 +1,4 @@
-import { BLOCK_SIZE, MINIBOARD_SIZE } from './consts'
+import { BLOCK_SIZE, MINIBOARD_SIZE } from '../consts'
 
 const nextCanvas = document.querySelector('.nextPiece')
 const nextCtx = nextCanvas.getContext('2d')
